@@ -1,0 +1,18 @@
+# Secret keys — NEVER upload these
+.env
+.env.local
+
+# Installed packages
+node_modules/
+
+# Build files
+dist/
+build/
+
+# Database files
+*.sqlite
+*.db
+
+# Mac/Windows junk files
+.DS_Store
+Thumbs.db
