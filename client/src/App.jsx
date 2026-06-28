@@ -7,17 +7,10 @@ function App() {
   const [hr, setHr] = useState(null)
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/crypto')
-      .then(r => r.json()).then(setCrypto)
-
-    fetch('http://localhost:5000/api/fx')
-      .then(r => r.json()).then(setFx)
-
-    fetch('http://localhost:5000/api/hackernews')
-      .then(r => r.json()).then(setNews)
-
-    fetch('http://localhost:5000/api/hr')
-      .then(r => r.json()).then(setHr)
+    fetch('https://ops-dashboard-server.onrender.com/api/crypto')
+fetch('https://ops-dashboard-server.onrender.com/api/fx')
+fetch('https://ops-dashboard-server.onrender.com/api/hackernews')
+fetch('https://ops-dashboard-server.onrender.com/api/hr')
   }, [])
 
   return (
