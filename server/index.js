@@ -32,7 +32,6 @@ app.get('/', (req, res) => {
 
 // ── LEVEL 1: PUBLIC APIs ──
 
-// CoinGecko - crypto
 app.get('/api/crypto', async (req, res) => {
   try {
     const data = await fetchWithCache('crypto',
@@ -43,7 +42,6 @@ app.get('/api/crypto', async (req, res) => {
   }
 });
 
-// Frankfurter - FX rates
 app.get('/api/fx', async (req, res) => {
   try {
     const data = await fetchWithCache('fx',
@@ -54,7 +52,6 @@ app.get('/api/fx', async (req, res) => {
   }
 });
 
-// Open-Meteo - air quality
 app.get('/api/airquality', async (req, res) => {
   try {
     const data = await fetchWithCache('airquality',
@@ -65,7 +62,6 @@ app.get('/api/airquality', async (req, res) => {
   }
 });
 
-// Hacker News
 app.get('/api/hackernews', async (req, res) => {
   try {
     const ids = await fetchWithCache('hn-ids',
@@ -81,7 +77,6 @@ app.get('/api/hackernews', async (req, res) => {
   }
 });
 
-// RandomUser - HR
 app.get('/api/hr', async (req, res) => {
   try {
     const data = await fetchWithCache('hr',
@@ -92,7 +87,6 @@ app.get('/api/hr', async (req, res) => {
   }
 });
 
-// Reddit
 app.get('/api/reddit', async (req, res) => {
   try {
     const data = await fetchWithCache('reddit',
@@ -104,7 +98,6 @@ app.get('/api/reddit', async (req, res) => {
   }
 });
 
-// World Bank
 app.get('/api/worldbank', async (req, res) => {
   try {
     const data = await fetchWithCache('worldbank',
@@ -117,7 +110,6 @@ app.get('/api/worldbank', async (req, res) => {
 
 // ── LEVEL 2: KEY-BASED APIs ──
 
-// Alpha Vantage - stocks
 app.get('/api/stocks', async (req, res) => {
   try {
     const data = await fetchWithCache('stocks',
@@ -128,7 +120,6 @@ app.get('/api/stocks', async (req, res) => {
   }
 });
 
-// OpenWeatherMap - weather
 app.get('/api/weather', async (req, res) => {
   try {
     const data = await fetchWithCache('weather',
@@ -139,7 +130,6 @@ app.get('/api/weather', async (req, res) => {
   }
 });
 
-// NewsAPI - headlines
 app.get('/api/news', async (req, res) => {
   try {
     const data = await fetchWithCache('news',
@@ -150,7 +140,6 @@ app.get('/api/news', async (req, res) => {
   }
 });
 
-// FRED - economic data
 app.get('/api/economics', async (req, res) => {
   try {
     const data = await fetchWithCache('economics',
@@ -161,7 +150,6 @@ app.get('/api/economics', async (req, res) => {
   }
 });
 
-// AQICN - air quality index
 app.get('/api/aqi', async (req, res) => {
   try {
     const data = await fetchWithCache('aqi',
@@ -169,6 +157,19 @@ app.get('/api/aqi', async (req, res) => {
     res.json({ data, lastUpdated: new Date().toISOString() });
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch AQI data' });
+  }
+});
+
+// Trello - SOP kanban board
+ app.get('/api/sop-board', async (req, res) => {
+  try {
+    const data = await fetchWithCache('sop-board',
+      `https://api.trello.com/1/boards/zMxQ2VIU/lists?cards=open&key=${process.env.TRELLO_KEY}&token=${process.env.TRELLO_TOKEN}`,
+      900);
+    res.json({ data, lastUpdated: new Date().toISOString() });
+  } catch (error) {
+    console.log('TRELLO ERROR:', error.message);
+    res.status(500).json({ error: error.message });
   }
 });
 
