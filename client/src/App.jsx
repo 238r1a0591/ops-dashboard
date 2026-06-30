@@ -23,6 +23,11 @@ function App() {
   const [aqi, setAqi] = useState(null)
   const [stocks, setStocks] = useState(null)
   const [sopBoard, setSopBoard] = useState(null)
+  const [worldbank, setWorldbank] = useState(null)
+  const [airquality, setAirquality] = useState(null)
+  const [reddit, setReddit] = useState(null)
+  const [weather, setWeather] = useState(null)
+  const [economics, setEconomics] = useState(null)
   const [lastUpdated, setLastUpdated] = useState(null)
   const [loading, setLoading] = useState(true)
 
@@ -38,7 +43,7 @@ function App() {
     }
 
     const fetchAll = async () => {
-      const [c, f, n, h, a, s, sop] = await Promise.all([
+      const [c, f, n, h, a, s, sop, wb, aq2, rd, wt, ec] = await Promise.all([
         safeFetch(`${API}/api/crypto`),
         safeFetch(`${API}/api/fx`),
         safeFetch(`${API}/api/hackernews`),
@@ -46,6 +51,11 @@ function App() {
         safeFetch(`${API}/api/aqi`),
         safeFetch(`${API}/api/stocks`),
         safeFetch(`${API}/api/sop-board`),
+        safeFetch(`${API}/api/worldbank`),
+        safeFetch(`${API}/api/airquality`),
+        safeFetch(`${API}/api/reddit`),
+        safeFetch(`${API}/api/weather`),
+        safeFetch(`${API}/api/economics`),
       ])
 
       setCrypto(c?.data?.bitcoin ? c.data : null)
@@ -55,6 +65,11 @@ function App() {
       setAqi(a?.data?.data ? a.data.data : null)
       setStocks(s?.data?.['Global Quote'] ? s.data : null)
       setSopBoard(Array.isArray(sop?.data) ? sop.data : null)
+      setWorldbank(Array.isArray(wb?.data) && wb.data[1] ? (wb.data[1].find(item => item.value !== null) || null) : null)
+      setAirquality(aq2?.data?.hourly ? aq2.data : null)
+      setReddit(rd?.data?.data?.children ? rd.data.data.children : null)
+      setWeather(wt?.data?.main ? wt.data : null)
+      setEconomics(ec?.data?.observations ? ec.data.observations : null)
       setLastUpdated(new Date().toLocaleTimeString())
       setLoading(false)
     }
@@ -72,7 +87,7 @@ function App() {
           Last Updated: {lastUpdated || 'Loading...'}
         </span>
       </div>
-      <p style={{ color: '#888', marginTop: 0 }}>Live data from 9 sources • Cache enabled</p>
+      <p style={{ color: '#888', marginTop: 0 }}>Live data from 14 sources • Cache enabled</p>
 
       {/* Crypto */}
       <SectionTitle title="Crypto Prices" />
@@ -89,6 +104,14 @@ function App() {
         )) : <p style={{ color: '#888' }}>{loading ? 'Loading...' : 'Unavailable right now'}</p>}
       </div>
 
+      {/* Weather */}
+      <SectionTitle title="Weather — Hyderabad" />
+      <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+        <KPICard title="Temperature" value={weather ? `${weather.main.temp}°C` : (loading ? null : 'Unavailable')} color="#f39c12" />
+        <KPICard title="Condition" value={weather?.weather?.[0]?.main || (loading ? null : 'Unavailable')} color="#3498db" />
+        <KPICard title="Humidity" value={weather ? `${weather.main.humidity}%` : (loading ? null : 'Unavailable')} color="#2ecc71" />
+      </div>
+
       {/* AQI */}
       <SectionTitle title="Air Quality Index — Hyderabad" />
       <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
@@ -98,6 +121,16 @@ function App() {
           color={aqi?.aqi > 150 ? '#e74c3c' : aqi?.aqi > 100 ? '#f39c12' : '#2ecc71'}
         />
         <KPICard title="Station" value={aqi?.city?.name || (loading ? null : 'Unavailable')} color="#3b82f6" />
+      </div>
+
+      {/* PM2.5 Forecast */}
+      <SectionTitle title="PM2.5 Forecast (Open-Meteo)" />
+      <div style={{ background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+        {airquality?.hourly?.pm2_5 ? (
+          <p style={{ fontSize: '13px', color: '#333' }}>
+            Current PM2.5: <strong>{airquality.hourly.pm2_5[0]}</strong> µg/m³ · Next hour: <strong>{airquality.hourly.pm2_5[1]}</strong> µg/m³
+          </p>
+        ) : <p style={{ color: '#888' }}>{loading ? 'Loading...' : 'Unavailable right now'}</p>}
       </div>
 
       {/* Stocks */}
@@ -113,6 +146,27 @@ function App() {
           value={stocks?.['10. change percent'] || (loading ? null : 'Unavailable')}
           color="#e74c3c"
         />
+      </div>
+
+      {/* World Bank */}
+      <SectionTitle title="India GDP (World Bank)" />
+      <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+        <KPICard
+          title={worldbank ? `GDP (${worldbank.date})` : 'GDP'}
+          value={worldbank?.value ? `$${(worldbank.value / 1e12).toFixed(2)}T` : (loading ? null : 'Unavailable')}
+          color="#16a085"
+        />
+      </div>
+
+      {/* Economics - FRED */}
+      <SectionTitle title="US CPI (Inflation) — FRED" />
+      <div style={{ background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+        {economics ? economics.slice(0, 6).map((obs, i) => (
+          <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f0f0f0', fontSize: '13px' }}>
+            <span style={{ color: '#888' }}>{obs.date}</span>
+            <span style={{ fontWeight: 'bold', color: '#1a1a2e' }}>{obs.value}</span>
+          </div>
+        )) : <p style={{ color: '#888' }}>{loading ? 'Loading...' : 'Unavailable right now'}</p>}
       </div>
 
       {/* SOP Board - Trello */}
@@ -147,6 +201,17 @@ function App() {
             <span style={{ color: '#888', fontSize: '12px', marginLeft: '8px' }}>
               ▲ {story.score} points
             </span>
+          </div>
+        )) : <p style={{ color: '#888' }}>{loading ? 'Loading...' : 'Unavailable right now'}</p>}
+      </div>
+
+      {/* Reddit */}
+      <SectionTitle title="Entrepreneur Community (Reddit)" />
+      <div style={{ background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+        {reddit ? reddit.slice(0, 5).map((post, i) => (
+          <div key={i} style={{ padding: '10px 0', borderBottom: '1px solid #f0f0f0' }}>
+            <span style={{ color: '#1a1a2e', fontSize: '14px' }}>{post.data.title}</span>
+            <span style={{ color: '#888', fontSize: '12px', marginLeft: '8px' }}>▲ {post.data.ups}</span>
           </div>
         )) : <p style={{ color: '#888' }}>{loading ? 'Loading...' : 'Unavailable right now'}</p>}
       </div>
