@@ -50,7 +50,7 @@ function App() {
       setFx(f?.data?.rates ? f.data : null)
       setNews(Array.isArray(n?.data) ? n.data : null)
       setHr(h?.data?.results ? h.data : null)
-      setAqi(a?.data?.data ? a.data : null)
+      setAqi(a?.data?.data ? a.data.data : null)
       setStocks(s?.data?.['Global Quote'] ? s.data : null)
       setLastUpdated(new Date().toLocaleTimeString())
       setLoading(false)
