@@ -22,6 +22,7 @@ function App() {
   const [hr, setHr] = useState(null)
   const [aqi, setAqi] = useState(null)
   const [stocks, setStocks] = useState(null)
+  const [sopBoard, setSopBoard] = useState(null)
   const [lastUpdated, setLastUpdated] = useState(null)
   const [loading, setLoading] = useState(true)
 
@@ -37,13 +38,14 @@ function App() {
     }
 
     const fetchAll = async () => {
-      const [c, f, n, h, a, s] = await Promise.all([
+      const [c, f, n, h, a, s, sop] = await Promise.all([
         safeFetch(`${API}/api/crypto`),
         safeFetch(`${API}/api/fx`),
         safeFetch(`${API}/api/hackernews`),
         safeFetch(`${API}/api/hr`),
         safeFetch(`${API}/api/aqi`),
         safeFetch(`${API}/api/stocks`),
+        safeFetch(`${API}/api/sop-board`),
       ])
 
       setCrypto(c?.data?.bitcoin ? c.data : null)
@@ -52,6 +54,7 @@ function App() {
       setHr(h?.data?.results ? h.data : null)
       setAqi(a?.data?.data ? a.data.data : null)
       setStocks(s?.data?.['Global Quote'] ? s.data : null)
+      setSopBoard(Array.isArray(sop?.data) ? sop.data : null)
       setLastUpdated(new Date().toLocaleTimeString())
       setLoading(false)
     }
@@ -69,7 +72,7 @@ function App() {
           Last Updated: {lastUpdated || 'Loading...'}
         </span>
       </div>
-      <p style={{ color: '#888', marginTop: 0 }}>Live data from 8 sources • Cache enabled</p>
+      <p style={{ color: '#888', marginTop: 0 }}>Live data from 9 sources • Cache enabled</p>
 
       {/* Crypto */}
       <SectionTitle title="Crypto Prices" />
@@ -102,7 +105,7 @@ function App() {
       <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
         <KPICard
           title="Reliance BSE"
-          value={stocks?.['05. price'] ? `₹${parseFloat(stocks['05. price']).toLocaleString()}` : (loading ? null : 'Unavailable')}
+          value={stocks?.['05. price'] ? `₹${parseFloat(stocks['05. price']).toLocaleString()}` : (loading ? null : 'Unavailable — daily limit reached')}
           color="#8b5cf6"
         />
         <KPICard
@@ -110,6 +113,26 @@ function App() {
           value={stocks?.['10. change percent'] || (loading ? null : 'Unavailable')}
           color="#e74c3c"
         />
+      </div>
+
+      {/* SOP Board - Trello */}
+      <SectionTitle title="SOP Tracker (Trello Kanban)" />
+      <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+        {sopBoard ? sopBoard.map((list) => (
+          <div key={list.id} style={{ background: 'white', borderRadius: '12px', padding: '16px', flex: '1', minWidth: '220px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <span style={{ fontWeight: 'bold', color: '#1a1a2e', fontSize: '14px' }}>{list.name}</span>
+              <span style={{ background: '#f0f2f5', borderRadius: '12px', padding: '2px 10px', fontSize: '12px', color: '#888' }}>
+                {list.cards.length}
+              </span>
+            </div>
+            {list.cards.length > 0 ? list.cards.map((card) => (
+              <div key={card.id} style={{ background: '#f9fafb', borderRadius: '8px', padding: '10px', marginBottom: '8px', fontSize: '13px', color: '#333', border: '1px solid #f0f0f0' }}>
+                {card.name}
+              </div>
+            )) : <p style={{ color: '#bbb', fontSize: '12px' }}>No cards</p>}
+          </div>
+        )) : <p style={{ color: '#888' }}>{loading ? 'Loading...' : 'Unavailable right now'}</p>}
       </div>
 
       {/* Hacker News */}
