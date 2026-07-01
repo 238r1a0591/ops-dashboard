@@ -176,7 +176,6 @@ app.get('/api/aqi', async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
-// USAJOBS - federal job openings (trimmed)
 app.get('/api/usajobs', async (req, res) => {
   try {
     const fullData = await fetchWithCache('usajobs-full',
@@ -199,11 +198,11 @@ app.get('/api/usajobs', async (req, res) => {
       salaryMax: item.MatchedObjectDescriptor?.PositionRemuneration?.[0]?.MaximumRange,
       url: item.MatchedObjectDescriptor?.PositionURI
     }));
-    res.json({ data: trimmed, lastUpdated: new Date().toISOString() });
+    res.json({ data: trimmed, lastUpdated: new Date().toISOString(), debugRaw: items.length === 0 ? fullData : undefined });
   } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch USAJOBS data' });
+    res.status(500).json({ error: error.message });
   }
-});
+}); 
 // SEC EDGAR - company filings (trimmed to last 5)
 app.get('/api/sec-edgar', async (req, res) => {
   try {
