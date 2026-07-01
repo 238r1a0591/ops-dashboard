@@ -30,6 +30,8 @@ function App() {
   const [economics, setEconomics] = useState(null)
   const [notion, setNotion] = useState(null)
   const [airtable, setAirtable] = useState(null)
+  const [who, setWho] = useState(null)
+  const [wikipedia, setWikipedia] = useState(null)
   const [lastUpdated, setLastUpdated] = useState(null)
   const [loading, setLoading] = useState(true)
 
@@ -45,7 +47,7 @@ function App() {
     }
 
     const fetchAll = async () => {
-      const [c, f, n, h, a, s, sop, wb, aq2, rd, wt, ec, nt, at] = await Promise.all([
+      const [c, f, n, h, a, s, sop, wb, aq2, rd, wt, ec, nt, at, wh, wiki] = await Promise.all([
         safeFetch(`${API}/api/crypto`),
         safeFetch(`${API}/api/fx`),
         safeFetch(`${API}/api/hackernews`),
@@ -60,6 +62,8 @@ function App() {
         safeFetch(`${API}/api/economics`),
         safeFetch(`${API}/api/notion`),
         safeFetch(`${API}/api/airtable`),
+        safeFetch(`${API}/api/who`),
+        safeFetch(`${API}/api/wikipedia`),
       ])
 
       setCrypto(c?.data?.bitcoin ? c.data : null)
@@ -76,6 +80,8 @@ function App() {
       setEconomics(ec?.data?.observations ? ec.data.observations : null)
       setNotion(nt?.data?.results ? nt.data.results : null)
       setAirtable(at?.data?.records ? at.data.records : null)
+      setWho(wh?.data?.value ? wh.data.value : null)
+      setWikipedia(wiki?.data?.title ? wiki.data : null)
       setLastUpdated(new Date().toLocaleTimeString())
       setLoading(false)
     }
@@ -93,7 +99,7 @@ function App() {
           Last Updated: {lastUpdated || 'Loading...'}
         </span>
       </div>
-      <p style={{ color: '#888', marginTop: 0 }}>Live data from 16 sources • Cache enabled</p>
+      <p style={{ color: '#888', marginTop: 0 }}>Live data from 18 sources • Cache enabled</p>
 
       {/* Crypto */}
       <SectionTitle title="Crypto Prices" />
@@ -264,6 +270,27 @@ function App() {
       <div style={{ marginTop: '32px', textAlign: 'center', color: '#888', fontSize: '12px' }}>
         Ops Dashboard • Built with React + Node.js • Deployed on Vercel + Render
       </div>
+     {/* WHO Health */}
+<SectionTitle title="Global Health Indicators (WHO)" />
+<div style={{ background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+  {who ? who.slice(0, 5).map((item, i) => (
+    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f0f0f0', fontSize: '13px' }}>
+      <span style={{ color: '#888' }}>{item.SpatialDim} — {item.TimeDim}</span>
+      <span style={{ fontWeight: 'bold', color: '#1a1a2e' }}>{item.NumericValue ? item.NumericValue.toFixed(1) : 'N/A'}</span>
+    </div>
+  )) : <p style={{ color: '#888' }}>{loading ? 'Loading...' : 'Unavailable right now'}</p>}
+</div>
+
+{/* Wikipedia */}
+<SectionTitle title="Company Intelligence (Wikipedia)" />
+<div style={{ background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+  {wikipedia ? (
+    <div>
+      <p style={{ fontWeight: 'bold', color: '#1a1a2e', margin: '0 0 8px' }}>{wikipedia.title}</p>
+      <p style={{ fontSize: '13px', color: '#555', margin: 0, lineHeight: '1.6' }}>{wikipedia.extract?.slice(0, 300)}...</p>
+    </div>
+  ) : <p style={{ color: '#888' }}>{loading ? 'Loading...' : 'Unavailable right now'}</p>}
+</div> 
     {/* Airtable Client CRM */}
 <SectionTitle title="Client CRM (Airtable)" />
 <div style={{ background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
