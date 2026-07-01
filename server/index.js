@@ -176,6 +176,21 @@ app.get('/api/aqi', async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+// RemoteOK - remote jobs
+app.get('/api/remoteok', async (req, res) => {
+  try {
+    const data = await fetchWithCache('remoteok',
+      'https://remoteok.com/api',
+      3600,
+      { headers: { 'User-Agent': 'ops-dashboard/1.0 (sunithasonu744@gmail.com)' } }
+    );
+    // First element is a legal notice, skip it
+    const jobs = Array.isArray(data) ? data.slice(1, 6) : [];
+    res.json({ data: jobs, lastUpdated: new Date().toISOString() });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch RemoteOK data' });
+  }
+});
 // WHO GHO - health indicators
 app.get('/api/who', async (req, res) => {
   try {
