@@ -130,15 +130,7 @@ app.get('/api/weather', async (req, res) => {
   }
 });
 
-app.get('/api/news', async (req, res) => {
-  try {
-    const data = await fetchWithCache('news',
-      `https://newsapi.org/v2/top-headlines?country=in&category=business&apiKey=${process.env.NEWSAPI_KEY}`, 1800);
-    res.json({ data, lastUpdated: new Date().toISOString() });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch news data' });
-  }
-});
+ 
 
 app.get('/api/economics', async (req, res) => {
   try {
@@ -387,9 +379,8 @@ app.get('/api/notion', async (req, res) => {
 // NewsAPI - business headlines
 app.get('/api/news', async (req, res) => {
   try {
-    const data = await fetchWithCache('news',
-      `https://newsapi.org/v2/top-headlines?country=in&category=business&apiKey=${process.env.NEWSAPI_KEY}`,
-      1800);
+    const data = await fetchWithCache('news-v3',
+      `https://newsapi.org/v2/everything?q=india&language=en&sortBy=publishedAt&pageSize=5&apiKey=${process.env.NEWSAPI_KEY}`, 1800);
     res.json({ data, lastUpdated: new Date().toISOString() });
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch news data' });
