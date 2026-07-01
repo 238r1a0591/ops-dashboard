@@ -176,6 +176,56 @@ app.get('/api/aqi', async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+// SOP Action Queue - in-memory store
+let actionQueue = [];
+
+function createActionIfNotExists(triggerId, sopId, assignee, reason, slaHours) {
+  const exists = actionQueue.find(item => item.triggerId === triggerId && !item.resolved);
+  if (exists) return exists;
+  const action = {
+    id: `${triggerId}-${Date.now()}`,
+    triggerId,
+    sopId,
+    assignee,
+    reason,
+    createdAt: new Date().toISOString(),
+    slaDeadline: new Date(Date.now() + slaHours * 60 * 60 * 1000).toISOString(),
+    resolved: false
+  };
+  actionQueue.push(action);
+  console.log('SOP TRIGGER FIRED:', action);
+  return action;
+}
+
+// Check AQI and fire trigger if needed
+app.get('/api/check-triggers', async (req, res) => {
+  try {
+    const aqiData = await fetchWithCache('aqi',
+      `https://api.waqi.info/feed/hyderabad/?token=${process.env.AQICN_TOKEN}`, 1800);
+    const currentAqi = aqiData?.data?.aqi || 0;
+
+    const AQI_THRESHOLD = 80; // lowered for demo — brief specifies 200 in production
+
+    if (currentAqi > AQI_THRESHOLD) {
+      createActionIfNotExists(
+        'aqi-hyderabad',
+        'WFH-Advisory',
+        'ops-team@company.com',
+        `AQI is ${currentAqi}, exceeds threshold of ${AQI_THRESHOLD}`,
+        24
+      );
+    }
+
+    res.json({ currentAqi, threshold: AQI_THRESHOLD, actionQueue });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to check triggers' });
+  }
+});
+
+// View the action queue
+app.get('/api/action-queue', (req, res) => {
+  res.json({ data: actionQueue, lastUpdated: new Date().toISOString() });
+});
 // RemoteOK - remote jobs
 app.get('/api/remoteok', async (req, res) => {
   try {

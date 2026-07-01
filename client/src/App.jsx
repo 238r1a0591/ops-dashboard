@@ -33,6 +33,7 @@ function App() {
   const [who, setWho] = useState(null)
   const [wikipedia, setWikipedia] = useState(null)
   const [remoteok, setRemoteok] = useState(null)
+  const [actionQueue, setActionQueue] = useState(null)
   const [lastUpdated, setLastUpdated] = useState(null)
   const [loading, setLoading] = useState(true)
 
@@ -48,7 +49,7 @@ function App() {
     }
 
     const fetchAll = async () => {
-      const [c, f, n, h, a, s, sop, wb, aq2, rd, wt, ec, nt, at, wh, wiki, rok] = await Promise.all([
+      const [c, f, n, h, a, s, sop, wb, aq2, rd, wt, ec, nt, at, wh, wiki, rok, aq3] = await Promise.all([
         safeFetch(`${API}/api/crypto`),
         safeFetch(`${API}/api/fx`),
         safeFetch(`${API}/api/hackernews`),
@@ -66,6 +67,7 @@ function App() {
         safeFetch(`${API}/api/who`),
         safeFetch(`${API}/api/wikipedia`),
         safeFetch(`${API}/api/remoteok`),
+        safeFetch(`${API}/api/check-triggers`),
       ])
 
       setCrypto(c?.data?.bitcoin ? c.data : null)
@@ -85,6 +87,7 @@ function App() {
       setWho(wh?.data?.value ? wh.data.value : null)
       setWikipedia(wiki?.data?.title ? wiki.data : null)
       setRemoteok(Array.isArray(rok?.data) ? rok.data : null)
+      setActionQueue(aq3?.actionQueue ? aq3.actionQueue : (Array.isArray(aq3?.data) ? aq3.data : null))
       setLastUpdated(new Date().toLocaleTimeString())
       setLoading(false)
     }
@@ -103,7 +106,36 @@ function App() {
         </span>
       </div>
       <p style={{ color: '#888', marginTop: 0 }}>Live data from 19 sources • Cache enabled</p>
-
+      {/* SOP Action Queue - Triggers */}
+{actionQueue && actionQueue.length > 0 && (
+  <div style={{ marginTop: '16px' }}>
+    <SectionTitle title="⚡ SOP Action Queue — Active Triggers" />
+    {actionQueue.filter(a => !a.resolved).map((action, i) => (
+      <div key={i} style={{
+        background: '#fff5f5',
+        border: '1px solid #feb2b2',
+        borderRadius: '10px',
+        padding: '14px 18px',
+        marginBottom: '10px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center'
+      }}>
+        <div>
+          <p style={{ margin: 0, fontWeight: 'bold', color: '#c53030', fontSize: '14px' }}>{action.sopId}</p>
+          <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#742a2a' }}>{action.reason}</p>
+          <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#888' }}>Assigned to: {action.assignee}</p>
+        </div>
+        <div style={{ textAlign: 'right' }}>
+          <p style={{ margin: 0, fontSize: '11px', color: '#888' }}>SLA deadline</p>
+          <p style={{ margin: '2px 0 0', fontSize: '13px', fontWeight: 'bold', color: '#c53030' }}>
+            {new Date(action.slaDeadline).toLocaleString()}
+          </p>
+        </div>
+      </div>
+    ))}
+  </div>
+)}
       {/* Crypto */}
       <SectionTitle title="Crypto Prices" />
       <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
