@@ -36,6 +36,7 @@ function App() {
   const [actionQueue, setActionQueue] = useState(null)
   const [secEdgar, setSecEdgar] = useState(null)
   const [hnHiring, setHnHiring] = useState(null)
+  const [usajobs, setUsajobs] = useState(null)
   const [lastUpdated, setLastUpdated] = useState(null)
   const [loading, setLoading] = useState(true)
 
@@ -51,7 +52,7 @@ function App() {
     }
 
     const fetchAll = async () => {
-      const [c, f, n, h, a, s, sop, wb, aq2, rd, wt, ec, nt, at, wh, wiki, rok, aq3, sec, hnh] = await Promise.all([
+      const [c, f, n, h, a, s, sop, wb, aq2, rd, wt, ec, nt, at, wh, wiki, rok, aq3, sec, hnh, uj] = await Promise.all([
         safeFetch(`${API}/api/crypto`),
         safeFetch(`${API}/api/fx`),
         safeFetch(`${API}/api/hackernews`),
@@ -72,6 +73,7 @@ function App() {
         safeFetch(`${API}/api/check-triggers`),
         safeFetch(`${API}/api/sec-edgar`),
         safeFetch(`${API}/api/hn-hiring`),
+        safeFetch(`${API}/api/usajobs`),
       ])
 
       setCrypto(c?.data?.bitcoin ? c.data : null)
@@ -94,6 +96,7 @@ function App() {
       setActionQueue(aq3?.actionQueue ? aq3.actionQueue : (Array.isArray(aq3?.data) ? aq3.data : null))
       setSecEdgar(sec?.data?.filings ? sec.data : null)
       setHnHiring(Array.isArray(hnh?.data) ? hnh.data : null)
+      setUsajobs(Array.isArray(uj?.data) ? uj.data : null)
       setLastUpdated(new Date().toLocaleTimeString())
       setLoading(false)
     }
@@ -111,7 +114,7 @@ function App() {
           Last Updated: {lastUpdated || 'Loading...'}
         </span>
       </div>
-      <p style={{ color: '#888', marginTop: 0 }}>Live data from 22 sources • Cache enabled</p>
+      <p style={{ color: '#888', marginTop: 0 }}>Live data from 23 sources • Cache enabled</p>
 
       {/* SOP Action Queue - Triggers */}
       {actionQueue && actionQueue.length > 0 && (
@@ -380,6 +383,21 @@ function App() {
         {comment.text ? comment.text.replace(/<[^>]*>/g, '').slice(0, 200) : 'No text'}...
       </p>
       <span style={{ fontSize: '11px', color: '#888' }}>by {comment.author}</span>
+    </div>
+  )) : <p style={{ color: '#888' }}>{loading ? 'Loading...' : 'Unavailable right now'}</p>}
+</div>
+{/* USAJOBS */}
+<SectionTitle title="Federal Job Openings (USAJOBS)" />
+<div style={{ background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+  {usajobs ? usajobs.map((job, i) => (
+    <div key={i} style={{ padding: '10px 0', borderBottom: '1px solid #f0f0f0' }}>
+      <a href={job.url} target="_blank" rel="noreferrer"
+        style={{ color: '#1a1a2e', textDecoration: 'none', fontSize: '14px', fontWeight: 'bold' }}>
+        {job.title}
+      </a>
+      <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#888' }}>
+        {job.org} • {job.location} • ${job.salaryMin}-${job.salaryMax}
+      </p>
     </div>
   )) : <p style={{ color: '#888' }}>{loading ? 'Loading...' : 'Unavailable right now'}</p>}
 </div>
