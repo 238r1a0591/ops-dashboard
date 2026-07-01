@@ -172,7 +172,19 @@ app.get('/api/aqi', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-
+// Clockify - time entries / workspace info
+app.get('/api/clockify', async (req, res) => {
+  try {
+    const workspaces = await fetchWithCache('clockify-workspaces',
+      'https://api.clockify.me/api/v1/workspaces',
+      3600,
+      { headers: { 'X-Api-Key': process.env.CLOCKIFY_KEY } }
+    );
+    res.json({ data: workspaces, lastUpdated: new Date().toISOString() });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch Clockify data' });
+  }
+});
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
@@ -370,5 +382,16 @@ app.get('/api/notion', async (req, res) => {
     res.json({ data, lastUpdated: new Date().toISOString() });
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch Notion data' });
+  }
+});
+// NewsAPI - business headlines
+app.get('/api/news', async (req, res) => {
+  try {
+    const data = await fetchWithCache('news',
+      `https://newsapi.org/v2/top-headlines?country=in&category=business&apiKey=${process.env.NEWSAPI_KEY}`,
+      1800);
+    res.json({ data, lastUpdated: new Date().toISOString() });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch news data' });
   }
 });
