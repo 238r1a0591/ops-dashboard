@@ -29,6 +29,7 @@ function App() {
   const [weather, setWeather] = useState(null)
   const [economics, setEconomics] = useState(null)
   const [notion, setNotion] = useState(null)
+  const [airtable, setAirtable] = useState(null)
   const [lastUpdated, setLastUpdated] = useState(null)
   const [loading, setLoading] = useState(true)
 
@@ -44,7 +45,7 @@ function App() {
     }
 
     const fetchAll = async () => {
-      const [c, f, n, h, a, s, sop, wb, aq2, rd, wt, ec, nt] = await Promise.all([
+      const [c, f, n, h, a, s, sop, wb, aq2, rd, wt, ec, nt, at] = await Promise.all([
         safeFetch(`${API}/api/crypto`),
         safeFetch(`${API}/api/fx`),
         safeFetch(`${API}/api/hackernews`),
@@ -58,6 +59,7 @@ function App() {
         safeFetch(`${API}/api/weather`),
         safeFetch(`${API}/api/economics`),
         safeFetch(`${API}/api/notion`),
+        safeFetch(`${API}/api/airtable`),
       ])
 
       setCrypto(c?.data?.bitcoin ? c.data : null)
@@ -73,6 +75,7 @@ function App() {
       setWeather(wt?.data?.main ? wt.data : null)
       setEconomics(ec?.data?.observations ? ec.data.observations : null)
       setNotion(nt?.data?.results ? nt.data.results : null)
+      setAirtable(at?.data?.records ? at.data.records : null)
       setLastUpdated(new Date().toLocaleTimeString())
       setLoading(false)
     }
@@ -90,7 +93,7 @@ function App() {
           Last Updated: {lastUpdated || 'Loading...'}
         </span>
       </div>
-      <p style={{ color: '#888', marginTop: 0 }}>Live data from 15 sources • Cache enabled</p>
+      <p style={{ color: '#888', marginTop: 0 }}>Live data from 16 sources • Cache enabled</p>
 
       {/* Crypto */}
       <SectionTitle title="Crypto Prices" />
@@ -261,7 +264,20 @@ function App() {
       <div style={{ marginTop: '32px', textAlign: 'center', color: '#888', fontSize: '12px' }}>
         Ops Dashboard • Built with React + Node.js • Deployed on Vercel + Render
       </div>
-
+    {/* Airtable Client CRM */}
+<SectionTitle title="Client CRM (Airtable)" />
+<div style={{ background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+  {airtable ? airtable.map((record, i) => (
+    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #f0f0f0' }}>
+      <span style={{ fontSize: '14px', color: '#1a1a2e' }}>
+        {record.fields?.Name || 'Unnamed'}
+      </span>
+      <span style={{ fontSize: '12px', color: '#888' }}>
+        {new Date(record.createdTime).toLocaleDateString()}
+      </span>
+    </div>
+  )) : <p style={{ color: '#888' }}>{loading ? 'Loading...' : 'Unavailable right now'}</p>}
+</div>
     </div>
   )
 }
