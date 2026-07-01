@@ -105,37 +105,39 @@ function App() {
           Last Updated: {lastUpdated || 'Loading...'}
         </span>
       </div>
-      <p style={{ color: '#888', marginTop: 0 }}>Live data from 19 sources • Cache enabled</p>
+      <p style={{ color: '#888', marginTop: 0 }}>Live data from 20 sources • Cache enabled</p>
+
       {/* SOP Action Queue - Triggers */}
-{actionQueue && actionQueue.length > 0 && (
-  <div style={{ marginTop: '16px' }}>
-    <SectionTitle title="⚡ SOP Action Queue — Active Triggers" />
-    {actionQueue.filter(a => !a.resolved).map((action, i) => (
-      <div key={i} style={{
-        background: '#fff5f5',
-        border: '1px solid #feb2b2',
-        borderRadius: '10px',
-        padding: '14px 18px',
-        marginBottom: '10px',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center'
-      }}>
-        <div>
-          <p style={{ margin: 0, fontWeight: 'bold', color: '#c53030', fontSize: '14px' }}>{action.sopId}</p>
-          <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#742a2a' }}>{action.reason}</p>
-          <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#888' }}>Assigned to: {action.assignee}</p>
+      {actionQueue && actionQueue.length > 0 && (
+        <div style={{ marginTop: '16px' }}>
+          <SectionTitle title="⚡ SOP Action Queue — Active Triggers" />
+          {actionQueue.filter(a => !a.resolved).map((action, i) => (
+            <div key={i} style={{
+              background: '#fff5f5',
+              border: '1px solid #feb2b2',
+              borderRadius: '10px',
+              padding: '14px 18px',
+              marginBottom: '10px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <div>
+                <p style={{ margin: 0, fontWeight: 'bold', color: '#c53030', fontSize: '14px' }}>{action.sopId}</p>
+                <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#742a2a' }}>{action.reason}</p>
+                <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#888' }}>Assigned to: {action.assignee}</p>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <p style={{ margin: 0, fontSize: '11px', color: '#888' }}>SLA deadline</p>
+                <p style={{ margin: '2px 0 0', fontSize: '13px', fontWeight: 'bold', color: '#c53030' }}>
+                  {new Date(action.slaDeadline).toLocaleString()}
+                </p>
+              </div>
+            </div>
+          ))}
         </div>
-        <div style={{ textAlign: 'right' }}>
-          <p style={{ margin: 0, fontSize: '11px', color: '#888' }}>SLA deadline</p>
-          <p style={{ margin: '2px 0 0', fontSize: '13px', fontWeight: 'bold', color: '#c53030' }}>
-            {new Date(action.slaDeadline).toLocaleString()}
-          </p>
-        </div>
-      </div>
-    ))}
-  </div>
-)}
+      )}
+
       {/* Crypto */}
       <SectionTitle title="Crypto Prices" />
       <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
@@ -301,59 +303,63 @@ function App() {
         </table>
       </div>
 
+      {/* RemoteOK Jobs */}
+      <SectionTitle title="Remote Jobs (RemoteOK)" />
+      <div style={{ background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+        {remoteok ? remoteok.map((job, i) => (
+          <div key={i} style={{ padding: '10px 0', borderBottom: '1px solid #f0f0f0' }}>
+            <a href={job.url} target="_blank" rel="noreferrer"
+              style={{ color: '#1a1a2e', textDecoration: 'none', fontSize: '14px', fontWeight: 'bold' }}>
+              {job.position}
+            </a>
+            <span style={{ color: '#888', fontSize: '12px', marginLeft: '8px' }}>{job.company}</span>
+            <span style={{ color: '#3b82f6', fontSize: '12px', marginLeft: '8px' }}>{job.location}</span>
+          </div>
+        )) : <p style={{ color: '#888' }}>{loading ? 'Loading...' : 'Unavailable right now'}</p>}
+      </div>
+
+      {/* WHO Health */}
+      <SectionTitle title="Global Health Indicators (WHO)" />
+      <div style={{ background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+        {who ? who.slice(0, 5).map((item, i) => (
+          <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f0f0f0', fontSize: '13px' }}>
+            <span style={{ color: '#888' }}>{item.SpatialDim} — {item.TimeDim}</span>
+            <span style={{ fontWeight: 'bold', color: '#1a1a2e' }}>{item.NumericValue ? item.NumericValue.toFixed(1) : 'N/A'}</span>
+          </div>
+        )) : <p style={{ color: '#888' }}>{loading ? 'Loading...' : 'Unavailable right now'}</p>}
+      </div>
+
+      {/* Wikipedia */}
+      <SectionTitle title="Company Intelligence (Wikipedia)" />
+      <div style={{ background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+        {wikipedia ? (
+          <div>
+            <p style={{ fontWeight: 'bold', color: '#1a1a2e', margin: '0 0 8px' }}>{wikipedia.title}</p>
+            <p style={{ fontSize: '13px', color: '#555', margin: 0, lineHeight: '1.6' }}>{wikipedia.extract?.slice(0, 300)}...</p>
+          </div>
+        ) : <p style={{ color: '#888' }}>{loading ? 'Loading...' : 'Unavailable right now'}</p>}
+      </div>
+
+      {/* Airtable Client CRM */}
+      <SectionTitle title="Client CRM (Airtable)" />
+      <div style={{ background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+        {airtable ? airtable.map((record, i) => (
+          <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #f0f0f0' }}>
+            <span style={{ fontSize: '14px', color: '#1a1a2e' }}>
+              {record.fields?.Name || 'Unnamed'}
+            </span>
+            <span style={{ fontSize: '12px', color: '#888' }}>
+              {new Date(record.createdTime).toLocaleDateString()}
+            </span>
+          </div>
+        )) : <p style={{ color: '#888' }}>{loading ? 'Loading...' : 'Unavailable right now'}</p>}
+      </div>
+
       {/* Footer */}
       <div style={{ marginTop: '32px', textAlign: 'center', color: '#888', fontSize: '12px' }}>
         Ops Dashboard • Built with React + Node.js • Deployed on Vercel + Render
       </div>
-      {/* RemoteOK Jobs */}
-<SectionTitle title="Remote Jobs (RemoteOK)" />
-<div style={{ background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-  {remoteok ? remoteok.map((job, i) => (
-    <div key={i} style={{ padding: '10px 0', borderBottom: '1px solid #f0f0f0' }}>
-      <a href={job.url} target="_blank" rel="noreferrer"
-        style={{ color: '#1a1a2e', textDecoration: 'none', fontSize: '14px', fontWeight: 'bold' }}>
-        {job.position}
-      </a>
-      <span style={{ color: '#888', fontSize: '12px', marginLeft: '8px' }}>{job.company}</span>
-      <span style={{ color: '#3b82f6', fontSize: '12px', marginLeft: '8px' }}>{job.location}</span>
-    </div>
-  )) : <p style={{ color: '#888' }}>{loading ? 'Loading...' : 'Unavailable right now'}</p>}
-</div>
-     {/* WHO Health */}
-<SectionTitle title="Global Health Indicators (WHO)" />
-<div style={{ background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-  {who ? who.slice(0, 5).map((item, i) => (
-    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f0f0f0', fontSize: '13px' }}>
-      <span style={{ color: '#888' }}>{item.SpatialDim} — {item.TimeDim}</span>
-      <span style={{ fontWeight: 'bold', color: '#1a1a2e' }}>{item.NumericValue ? item.NumericValue.toFixed(1) : 'N/A'}</span>
-    </div>
-  )) : <p style={{ color: '#888' }}>{loading ? 'Loading...' : 'Unavailable right now'}</p>}
-</div>
 
-{/* Wikipedia */}
-<SectionTitle title="Company Intelligence (Wikipedia)" />
-<div style={{ background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-  {wikipedia ? (
-    <div>
-      <p style={{ fontWeight: 'bold', color: '#1a1a2e', margin: '0 0 8px' }}>{wikipedia.title}</p>
-      <p style={{ fontSize: '13px', color: '#555', margin: 0, lineHeight: '1.6' }}>{wikipedia.extract?.slice(0, 300)}...</p>
-    </div>
-  ) : <p style={{ color: '#888' }}>{loading ? 'Loading...' : 'Unavailable right now'}</p>}
-</div> 
-    {/* Airtable Client CRM */}
-<SectionTitle title="Client CRM (Airtable)" />
-<div style={{ background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-  {airtable ? airtable.map((record, i) => (
-    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #f0f0f0' }}>
-      <span style={{ fontSize: '14px', color: '#1a1a2e' }}>
-        {record.fields?.Name || 'Unnamed'}
-      </span>
-      <span style={{ fontSize: '12px', color: '#888' }}>
-        {new Date(record.createdTime).toLocaleDateString()}
-      </span>
-    </div>
-  )) : <p style={{ color: '#888' }}>{loading ? 'Loading...' : 'Unavailable right now'}</p>}
-</div>
     </div>
   )
 }
