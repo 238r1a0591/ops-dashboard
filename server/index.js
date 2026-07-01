@@ -176,3 +176,25 @@ app.get('/api/aqi', async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+// Notion - SOP Registry
+app.get('/api/notion', async (req, res) => {
+  try {
+    const response = await fetch(
+      `https://api.notion.com/v1/databases/3908ed8bfacb808e8873c564cf6e356d/query`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.NOTION_TOKEN}`,
+          'Notion-Version': '2022-06-28',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({})
+      }
+    );
+    const data = await response.json();
+    cache.set('notion', data, 900);
+    res.json({ data, lastUpdated: new Date().toISOString() });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch Notion data' });
+  }
+});

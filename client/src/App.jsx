@@ -28,6 +28,7 @@ function App() {
   const [reddit, setReddit] = useState(null)
   const [weather, setWeather] = useState(null)
   const [economics, setEconomics] = useState(null)
+  const [notion, setNotion] = useState(null)
   const [lastUpdated, setLastUpdated] = useState(null)
   const [loading, setLoading] = useState(true)
 
@@ -43,7 +44,7 @@ function App() {
     }
 
     const fetchAll = async () => {
-      const [c, f, n, h, a, s, sop, wb, aq2, rd, wt, ec] = await Promise.all([
+      const [c, f, n, h, a, s, sop, wb, aq2, rd, wt, ec, nt] = await Promise.all([
         safeFetch(`${API}/api/crypto`),
         safeFetch(`${API}/api/fx`),
         safeFetch(`${API}/api/hackernews`),
@@ -56,6 +57,7 @@ function App() {
         safeFetch(`${API}/api/reddit`),
         safeFetch(`${API}/api/weather`),
         safeFetch(`${API}/api/economics`),
+        safeFetch(`${API}/api/notion`),
       ])
 
       setCrypto(c?.data?.bitcoin ? c.data : null)
@@ -70,6 +72,7 @@ function App() {
       setReddit(rd?.data?.data?.children ? rd.data.data.children : null)
       setWeather(wt?.data?.main ? wt.data : null)
       setEconomics(ec?.data?.observations ? ec.data.observations : null)
+      setNotion(nt?.data?.results ? nt.data.results : null)
       setLastUpdated(new Date().toLocaleTimeString())
       setLoading(false)
     }
@@ -87,7 +90,7 @@ function App() {
           Last Updated: {lastUpdated || 'Loading...'}
         </span>
       </div>
-      <p style={{ color: '#888', marginTop: 0 }}>Live data from 14 sources • Cache enabled</p>
+      <p style={{ color: '#888', marginTop: 0 }}>Live data from 15 sources • Cache enabled</p>
 
       {/* Crypto */}
       <SectionTitle title="Crypto Prices" />
@@ -158,13 +161,28 @@ function App() {
         />
       </div>
 
-      {/* Economics - FRED */}
+      {/* Economics FRED */}
       <SectionTitle title="US CPI (Inflation) — FRED" />
       <div style={{ background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
         {economics ? economics.slice(0, 6).map((obs, i) => (
           <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f0f0f0', fontSize: '13px' }}>
             <span style={{ color: '#888' }}>{obs.date}</span>
             <span style={{ fontWeight: 'bold', color: '#1a1a2e' }}>{obs.value}</span>
+          </div>
+        )) : <p style={{ color: '#888' }}>{loading ? 'Loading...' : 'Unavailable right now'}</p>}
+      </div>
+
+      {/* Notion SOP Registry */}
+      <SectionTitle title="SOP Registry (Notion)" />
+      <div style={{ background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+        {notion ? notion.map((page, i) => (
+          <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #f0f0f0' }}>
+            <span style={{ fontSize: '14px', color: '#1a1a2e' }}>
+              {page.properties?.Name?.title?.[0]?.plain_text || 'Untitled'}
+            </span>
+            <span style={{ fontSize: '12px', color: '#888' }}>
+              {new Date(page.last_edited_time).toLocaleDateString()}
+            </span>
           </div>
         )) : <p style={{ color: '#888' }}>{loading ? 'Loading...' : 'Unavailable right now'}</p>}
       </div>
