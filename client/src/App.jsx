@@ -34,6 +34,8 @@ function App() {
   const [wikipedia, setWikipedia] = useState(null)
   const [remoteok, setRemoteok] = useState(null)
   const [actionQueue, setActionQueue] = useState(null)
+  const [secEdgar, setSecEdgar] = useState(null)
+  const [hnHiring, setHnHiring] = useState(null)
   const [lastUpdated, setLastUpdated] = useState(null)
   const [loading, setLoading] = useState(true)
 
@@ -49,7 +51,7 @@ function App() {
     }
 
     const fetchAll = async () => {
-      const [c, f, n, h, a, s, sop, wb, aq2, rd, wt, ec, nt, at, wh, wiki, rok, aq3] = await Promise.all([
+      const [c, f, n, h, a, s, sop, wb, aq2, rd, wt, ec, nt, at, wh, wiki, rok, aq3, sec, hnh] = await Promise.all([
         safeFetch(`${API}/api/crypto`),
         safeFetch(`${API}/api/fx`),
         safeFetch(`${API}/api/hackernews`),
@@ -68,6 +70,8 @@ function App() {
         safeFetch(`${API}/api/wikipedia`),
         safeFetch(`${API}/api/remoteok`),
         safeFetch(`${API}/api/check-triggers`),
+        safeFetch(`${API}/api/sec-edgar`),
+        safeFetch(`${API}/api/hn-hiring`),
       ])
 
       setCrypto(c?.data?.bitcoin ? c.data : null)
@@ -88,6 +92,8 @@ function App() {
       setWikipedia(wiki?.data?.title ? wiki.data : null)
       setRemoteok(Array.isArray(rok?.data) ? rok.data : null)
       setActionQueue(aq3?.actionQueue ? aq3.actionQueue : (Array.isArray(aq3?.data) ? aq3.data : null))
+      setSecEdgar(sec?.data?.filings ? sec.data : null)
+      setHnHiring(Array.isArray(hnh?.data) ? hnh.data : null)
       setLastUpdated(new Date().toLocaleTimeString())
       setLoading(false)
     }
@@ -105,7 +111,7 @@ function App() {
           Last Updated: {lastUpdated || 'Loading...'}
         </span>
       </div>
-      <p style={{ color: '#888', marginTop: 0 }}>Live data from 20 sources • Cache enabled</p>
+      <p style={{ color: '#888', marginTop: 0 }}>Live data from 22 sources • Cache enabled</p>
 
       {/* SOP Action Queue - Triggers */}
       {actionQueue && actionQueue.length > 0 && (
@@ -354,7 +360,29 @@ function App() {
           </div>
         )) : <p style={{ color: '#888' }}>{loading ? 'Loading...' : 'Unavailable right now'}</p>}
       </div>
+       {/* SEC EDGAR */}
+<SectionTitle title="SEC Filings — Apple Inc. (EDGAR)" />
+<div style={{ background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+  {secEdgar ? secEdgar.filings.map((filing, i) => (
+    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f0f0f0', fontSize: '13px' }}>
+      <span style={{ color: '#1a1a2e', fontWeight: 'bold' }}>Form {filing.form}</span>
+      <span style={{ color: '#888' }}>{filing.filingDate}</span>
+    </div>
+  )) : <p style={{ color: '#888' }}>{loading ? 'Loading...' : 'Unavailable right now'}</p>}
+</div>
 
+{/* HN Who's Hiring */}
+<SectionTitle title="Who's Hiring (Hacker News)" />
+<div style={{ background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+  {hnHiring ? hnHiring.map((comment, i) => (
+    <div key={i} style={{ padding: '10px 0', borderBottom: '1px solid #f0f0f0' }}>
+      <p style={{ fontSize: '13px', color: '#333', margin: 0 }}>
+        {comment.text ? comment.text.replace(/<[^>]*>/g, '').slice(0, 200) : 'No text'}...
+      </p>
+      <span style={{ fontSize: '11px', color: '#888' }}>by {comment.author}</span>
+    </div>
+  )) : <p style={{ color: '#888' }}>{loading ? 'Loading...' : 'Unavailable right now'}</p>}
+</div>
       {/* Footer */}
       <div style={{ marginTop: '32px', textAlign: 'center', color: '#888', fontSize: '12px' }}>
         Ops Dashboard • Built with React + Node.js • Deployed on Vercel + Render
