@@ -37,6 +37,8 @@ function App() {
   const [secEdgar, setSecEdgar] = useState(null)
   const [hnHiring, setHnHiring] = useState(null)
   const [usajobs, setUsajobs] = useState(null)
+  const [clockify, setClockify] = useState(null)
+  const [newsapi, setNewsapi] = useState(null)
   const [lastUpdated, setLastUpdated] = useState(null)
   const [loading, setLoading] = useState(true)
 
@@ -52,7 +54,7 @@ function App() {
     }
 
     const fetchAll = async () => {
-      const [c, f, n, h, a, s, sop, wb, aq2, rd, wt, ec, nt, at, wh, wiki, rok, aq3, sec, hnh, uj] = await Promise.all([
+      const [c, f, n, h, a, s, sop, wb, aq2, rd, wt, ec, nt, at, wh, wiki, rok, aq3, sec, hnh, uj, cl, na] = await Promise.all([
         safeFetch(`${API}/api/crypto`),
         safeFetch(`${API}/api/fx`),
         safeFetch(`${API}/api/hackernews`),
@@ -74,6 +76,8 @@ function App() {
         safeFetch(`${API}/api/sec-edgar`),
         safeFetch(`${API}/api/hn-hiring`),
         safeFetch(`${API}/api/usajobs`),
+        safeFetch(`${API}/api/clockify`),
+        safeFetch(`${API}/api/news`),
       ])
 
       setCrypto(c?.data?.bitcoin ? c.data : null)
@@ -97,6 +101,8 @@ function App() {
       setSecEdgar(sec?.data?.filings ? sec.data : null)
       setHnHiring(Array.isArray(hnh?.data) ? hnh.data : null)
       setUsajobs(Array.isArray(uj?.data) ? uj.data : null)
+      setClockify(Array.isArray(cl?.data) ? cl.data : null)
+      setNewsapi(na?.data?.articles ? na.data.articles : null)
       setLastUpdated(new Date().toLocaleTimeString())
       setLoading(false)
     }
@@ -114,9 +120,9 @@ function App() {
           Last Updated: {lastUpdated || 'Loading...'}
         </span>
       </div>
-      <p style={{ color: '#888', marginTop: 0 }}>Live data from 23 sources • Cache enabled</p>
+      <p style={{ color: '#888', marginTop: 0 }}>Live data from 25 sources • Cache enabled</p>
 
-      {/* SOP Action Queue - Triggers */}
+      {/* SOP Action Queue */}
       {actionQueue && actionQueue.length > 0 && (
         <div style={{ marginTop: '16px' }}>
           <SectionTitle title="⚡ SOP Action Queue — Active Triggers" />
@@ -227,6 +233,31 @@ function App() {
         )) : <p style={{ color: '#888' }}>{loading ? 'Loading...' : 'Unavailable right now'}</p>}
       </div>
 
+      {/* NewsAPI */}
+      <SectionTitle title="Business Headlines (NewsAPI)" />
+      <div style={{ background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+        {newsapi ? newsapi.slice(0, 5).map((article, i) => (
+          <div key={i} style={{ padding: '10px 0', borderBottom: '1px solid #f0f0f0' }}>
+            <a href={article.url} target="_blank" rel="noreferrer"
+              style={{ color: '#1a1a2e', textDecoration: 'none', fontSize: '14px' }}>
+              {article.title}
+            </a>
+            <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#888' }}>{article.source?.name}</p>
+          </div>
+        )) : <p style={{ color: '#888' }}>{loading ? 'Loading...' : 'Unavailable right now'}</p>}
+      </div>
+
+      {/* Clockify */}
+      <SectionTitle title="Workspaces (Clockify)" />
+      <div style={{ background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+        {clockify ? clockify.map((ws, i) => (
+          <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #f0f0f0' }}>
+            <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#1a1a2e' }}>{ws.name}</span>
+            <span style={{ fontSize: '12px', color: '#888' }}>{ws.hourlyRate?.currency || 'USD'}</span>
+          </div>
+        )) : <p style={{ color: '#888' }}>{loading ? 'Loading...' : 'Unavailable right now'}</p>}
+      </div>
+
       {/* Notion SOP Registry */}
       <SectionTitle title="SOP Registry (Notion)" />
       <div style={{ background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
@@ -271,9 +302,7 @@ function App() {
               style={{ color: '#1a1a2e', textDecoration: 'none', fontSize: '14px' }}>
               {story.title}
             </a>
-            <span style={{ color: '#888', fontSize: '12px', marginLeft: '8px' }}>
-              ▲ {story.score} points
-            </span>
+            <span style={{ color: '#888', fontSize: '12px', marginLeft: '8px' }}>▲ {story.score} points</span>
           </div>
         )) : <p style={{ color: '#888' }}>{loading ? 'Loading...' : 'Unavailable right now'}</p>}
       </div>
@@ -354,53 +383,52 @@ function App() {
       <div style={{ background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
         {airtable ? airtable.map((record, i) => (
           <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #f0f0f0' }}>
-            <span style={{ fontSize: '14px', color: '#1a1a2e' }}>
-              {record.fields?.Name || 'Unnamed'}
-            </span>
-            <span style={{ fontSize: '12px', color: '#888' }}>
-              {new Date(record.createdTime).toLocaleDateString()}
-            </span>
+            <span style={{ fontSize: '14px', color: '#1a1a2e' }}>{record.fields?.Name || 'Unnamed'}</span>
+            <span style={{ fontSize: '12px', color: '#888' }}>{new Date(record.createdTime).toLocaleDateString()}</span>
           </div>
         )) : <p style={{ color: '#888' }}>{loading ? 'Loading...' : 'Unavailable right now'}</p>}
       </div>
-       {/* SEC EDGAR */}
-<SectionTitle title="SEC Filings — Apple Inc. (EDGAR)" />
-<div style={{ background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-  {secEdgar ? secEdgar.filings.map((filing, i) => (
-    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f0f0f0', fontSize: '13px' }}>
-      <span style={{ color: '#1a1a2e', fontWeight: 'bold' }}>Form {filing.form}</span>
-      <span style={{ color: '#888' }}>{filing.filingDate}</span>
-    </div>
-  )) : <p style={{ color: '#888' }}>{loading ? 'Loading...' : 'Unavailable right now'}</p>}
-</div>
 
-{/* HN Who's Hiring */}
-<SectionTitle title="Who's Hiring (Hacker News)" />
-<div style={{ background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-  {hnHiring ? hnHiring.map((comment, i) => (
-    <div key={i} style={{ padding: '10px 0', borderBottom: '1px solid #f0f0f0' }}>
-      <p style={{ fontSize: '13px', color: '#333', margin: 0 }}>
-        {comment.text ? comment.text.replace(/<[^>]*>/g, '').slice(0, 200) : 'No text'}...
-      </p>
-      <span style={{ fontSize: '11px', color: '#888' }}>by {comment.author}</span>
-    </div>
-  )) : <p style={{ color: '#888' }}>{loading ? 'Loading...' : 'Unavailable right now'}</p>}
-</div>
-{/* USAJOBS */}
-<SectionTitle title="Federal Job Openings (USAJOBS)" />
-<div style={{ background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-  {usajobs ? usajobs.map((job, i) => (
-    <div key={i} style={{ padding: '10px 0', borderBottom: '1px solid #f0f0f0' }}>
-      <a href={job.url} target="_blank" rel="noreferrer"
-        style={{ color: '#1a1a2e', textDecoration: 'none', fontSize: '14px', fontWeight: 'bold' }}>
-        {job.title}
-      </a>
-      <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#888' }}>
-        {job.org} • {job.location} • ${job.salaryMin}-${job.salaryMax}
-      </p>
-    </div>
-  )) : <p style={{ color: '#888' }}>{loading ? 'Loading...' : 'Unavailable right now'}</p>}
-</div>
+      {/* SEC EDGAR */}
+      <SectionTitle title="SEC Filings — Apple Inc. (EDGAR)" />
+      <div style={{ background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+        {secEdgar ? secEdgar.filings.map((filing, i) => (
+          <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f0f0f0', fontSize: '13px' }}>
+            <span style={{ color: '#1a1a2e', fontWeight: 'bold' }}>Form {filing.form}</span>
+            <span style={{ color: '#888' }}>{filing.filingDate}</span>
+          </div>
+        )) : <p style={{ color: '#888' }}>{loading ? 'Loading...' : 'Unavailable right now'}</p>}
+      </div>
+
+      {/* HN Who's Hiring */}
+      <SectionTitle title="Who's Hiring (Hacker News)" />
+      <div style={{ background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+        {hnHiring ? hnHiring.map((comment, i) => (
+          <div key={i} style={{ padding: '10px 0', borderBottom: '1px solid #f0f0f0' }}>
+            <p style={{ fontSize: '13px', color: '#333', margin: 0 }}>
+              {comment.text ? comment.text.replace(/<[^>]*>/g, '').slice(0, 200) : 'No text'}...
+            </p>
+            <span style={{ fontSize: '11px', color: '#888' }}>by {comment.author}</span>
+          </div>
+        )) : <p style={{ color: '#888' }}>{loading ? 'Loading...' : 'Unavailable right now'}</p>}
+      </div>
+
+      {/* USAJOBS */}
+      <SectionTitle title="Federal Job Openings (USAJOBS)" />
+      <div style={{ background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+        {usajobs ? usajobs.map((job, i) => (
+          <div key={i} style={{ padding: '10px 0', borderBottom: '1px solid #f0f0f0' }}>
+            <a href={job.url} target="_blank" rel="noreferrer"
+              style={{ color: '#1a1a2e', textDecoration: 'none', fontSize: '14px', fontWeight: 'bold' }}>
+              {job.title}
+            </a>
+            <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#888' }}>
+              {job.org} • {job.location} • ${job.salaryMin}-${job.salaryMax}
+            </p>
+          </div>
+        )) : <p style={{ color: '#888' }}>{loading ? 'Loading...' : 'Unavailable right now'}</p>}
+      </div>
+
       {/* Footer */}
       <div style={{ marginTop: '32px', textAlign: 'center', color: '#888', fontSize: '12px' }}>
         Ops Dashboard • Built with React + Node.js • Deployed on Vercel + Render
