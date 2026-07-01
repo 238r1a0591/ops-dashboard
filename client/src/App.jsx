@@ -32,6 +32,7 @@ function App() {
   const [airtable, setAirtable] = useState(null)
   const [who, setWho] = useState(null)
   const [wikipedia, setWikipedia] = useState(null)
+  const [remoteok, setRemoteok] = useState(null)
   const [lastUpdated, setLastUpdated] = useState(null)
   const [loading, setLoading] = useState(true)
 
@@ -47,7 +48,7 @@ function App() {
     }
 
     const fetchAll = async () => {
-      const [c, f, n, h, a, s, sop, wb, aq2, rd, wt, ec, nt, at, wh, wiki] = await Promise.all([
+      const [c, f, n, h, a, s, sop, wb, aq2, rd, wt, ec, nt, at, wh, wiki, rok] = await Promise.all([
         safeFetch(`${API}/api/crypto`),
         safeFetch(`${API}/api/fx`),
         safeFetch(`${API}/api/hackernews`),
@@ -64,6 +65,7 @@ function App() {
         safeFetch(`${API}/api/airtable`),
         safeFetch(`${API}/api/who`),
         safeFetch(`${API}/api/wikipedia`),
+        safeFetch(`${API}/api/remoteok`),
       ])
 
       setCrypto(c?.data?.bitcoin ? c.data : null)
@@ -82,6 +84,7 @@ function App() {
       setAirtable(at?.data?.records ? at.data.records : null)
       setWho(wh?.data?.value ? wh.data.value : null)
       setWikipedia(wiki?.data?.title ? wiki.data : null)
+      setRemoteok(Array.isArray(rok?.data) ? rok.data : null)
       setLastUpdated(new Date().toLocaleTimeString())
       setLoading(false)
     }
@@ -99,7 +102,7 @@ function App() {
           Last Updated: {lastUpdated || 'Loading...'}
         </span>
       </div>
-      <p style={{ color: '#888', marginTop: 0 }}>Live data from 18 sources • Cache enabled</p>
+      <p style={{ color: '#888', marginTop: 0 }}>Live data from 19 sources • Cache enabled</p>
 
       {/* Crypto */}
       <SectionTitle title="Crypto Prices" />
@@ -270,6 +273,20 @@ function App() {
       <div style={{ marginTop: '32px', textAlign: 'center', color: '#888', fontSize: '12px' }}>
         Ops Dashboard • Built with React + Node.js • Deployed on Vercel + Render
       </div>
+      {/* RemoteOK Jobs */}
+<SectionTitle title="Remote Jobs (RemoteOK)" />
+<div style={{ background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+  {remoteok ? remoteok.map((job, i) => (
+    <div key={i} style={{ padding: '10px 0', borderBottom: '1px solid #f0f0f0' }}>
+      <a href={job.url} target="_blank" rel="noreferrer"
+        style={{ color: '#1a1a2e', textDecoration: 'none', fontSize: '14px', fontWeight: 'bold' }}>
+        {job.position}
+      </a>
+      <span style={{ color: '#888', fontSize: '12px', marginLeft: '8px' }}>{job.company}</span>
+      <span style={{ color: '#3b82f6', fontSize: '12px', marginLeft: '8px' }}>{job.location}</span>
+    </div>
+  )) : <p style={{ color: '#888' }}>{loading ? 'Loading...' : 'Unavailable right now'}</p>}
+</div>
      {/* WHO Health */}
 <SectionTitle title="Global Health Indicators (WHO)" />
 <div style={{ background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
