@@ -176,6 +176,23 @@ app.get('/api/aqi', async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+// Airtable - Client CRM
+app.get('/api/airtable', async (req, res) => {
+  try {
+    const data = await fetchWithCache('airtable',
+      `https://api.airtable.com/v0/appSK4QsBBQKdhfcI/tblNHk8MSPT7mnlh9`,
+      900,
+      {
+        headers: {
+          'Authorization': `Bearer ${process.env.AIRTABLE_PAT}`
+        }
+      }
+    );
+    res.json({ data, lastUpdated: new Date().toISOString() });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch Airtable data' });
+  }
+});
 // Notion - SOP Registry
 app.get('/api/notion', async (req, res) => {
   try {
