@@ -176,6 +176,34 @@ app.get('/api/aqi', async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+// USAJOBS - federal job openings (trimmed)
+app.get('/api/usajobs', async (req, res) => {
+  try {
+    const fullData = await fetchWithCache('usajobs-full',
+      'https://data.usajobs.gov/api/Search?Keyword=data%20analyst&ResultsPerPage=5',
+      3600,
+      {
+        headers: {
+          'Host': 'data.usajobs.gov',
+          'User-Agent': 'sunithasonu744@gmail.com',
+          'Authorization-Key': process.env.USAJOBS_KEY
+        }
+      }
+    );
+    const items = fullData?.SearchResult?.SearchResultItems || [];
+    const trimmed = items.map(item => ({
+      title: item.MatchedObjectDescriptor?.PositionTitle,
+      org: item.MatchedObjectDescriptor?.OrganizationName,
+      location: item.MatchedObjectDescriptor?.PositionLocationDisplay,
+      salaryMin: item.MatchedObjectDescriptor?.PositionRemuneration?.[0]?.MinimumRange,
+      salaryMax: item.MatchedObjectDescriptor?.PositionRemuneration?.[0]?.MaximumRange,
+      url: item.MatchedObjectDescriptor?.PositionURI
+    }));
+    res.json({ data: trimmed, lastUpdated: new Date().toISOString() });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch USAJOBS data' });
+  }
+});
 // SEC EDGAR - company filings (trimmed to last 5)
 app.get('/api/sec-edgar', async (req, res) => {
   try {
