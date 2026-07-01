@@ -176,6 +176,31 @@ app.get('/api/aqi', async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+// WHO GHO - health indicators
+app.get('/api/who', async (req, res) => {
+  try {
+    const data = await fetchWithCache('who',
+      'https://ghoapi.azureedge.net/api/NCDMORT3070?$top=10',
+      86400);
+    res.json({ data, lastUpdated: new Date().toISOString() });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch WHO data' });
+  }
+});
+
+// Wikipedia - company infobox
+app.get('/api/wikipedia', async (req, res) => {
+  try {
+    const data = await fetchWithCache('wikipedia',
+      'https://en.wikipedia.org/api/rest_v1/page/summary/Infosys',
+      86400,
+      { headers: { 'User-Agent': 'ops-dashboard/1.0 (sunithasonu744@gmail.com)' } }
+    );
+    res.json({ data, lastUpdated: new Date().toISOString() });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch Wikipedia data' });
+  }
+});
 // Airtable - Client CRM
 app.get('/api/airtable', async (req, res) => {
   try {
