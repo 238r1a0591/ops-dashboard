@@ -176,6 +176,46 @@ app.get('/api/aqi', async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+// SEC EDGAR - company filings (trimmed to last 5)
+app.get('/api/sec-edgar', async (req, res) => {
+  try {
+    const fullData = await fetchWithCache('sec-edgar-full',
+      'https://data.sec.gov/submissions/CIK0000320193.json',
+      86400,
+      { headers: { 'User-Agent': 'ops-dashboard sunithasonu744@gmail.com' } }
+    );
+    const recent = fullData?.filings?.recent;
+    const trimmed = recent ? recent.form.slice(0, 5).map((form, i) => ({
+      form,
+      filingDate: recent.filingDate[i],
+      accessionNumber: recent.accessionNumber[i]
+    })) : [];
+    res.json({
+      data: { companyName: fullData?.name, filings: trimmed },
+      lastUpdated: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch SEC EDGAR data' });
+  }
+});
+ // HN Who is Hiring - latest thread comments
+app.get('/api/hn-hiring', async (req, res) => {
+  try {
+    const searchData = await fetchWithCache('hn-hiring-search',
+      'https://hn.algolia.com/api/v1/search_by_date?query=Who%20is%20hiring&tags=story&hitsPerPage=1',
+      86400);
+    const threadId = searchData?.hits?.[0]?.objectID;
+    if (!threadId) return res.json({ data: [], lastUpdated: new Date().toISOString() });
+
+    const threadData = await fetchWithCache(`hn-hiring-${threadId}`,
+      `https://hn.algolia.com/api/v1/items/${threadId}`,
+      86400);
+    const topComments = (threadData?.children || []).slice(0, 5);
+    res.json({ data: topComments, lastUpdated: new Date().toISOString() });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch HN hiring data' });
+  }
+});
 // SOP Action Queue - in-memory store
 let actionQueue = [];
 
