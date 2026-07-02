@@ -1,37 +1,35 @@
 import { useState, useEffect } from 'react'
 
-const API = 'https://ops-dashboard-server.onrender.com'
+const API = "https://ops-dashboard-server.onrender.com";
 
 const ROLE_WIDGETS = {
   founder: ['all'],
-  finance: ['crypto', 'fx', 'stocks', 'economics', 'worldbank'],
-  hr: ['hr', 'remoteok', 'usajobs', 'clockify'],
-  analyst: ['hackernews', 'reddit', 'who', 'wikipedia', 'secedgar', 'hnhiring', 'aqi', 'weather', 'airquality', 'notion', 'sopboard', 'airtable']
+  analyst: ['hackernews', 'reddit', 'who', 'wikipedia', 'secedgar', 'hnhiring', 'aqi', 'weather', 'airquality', 'notion', 'sopboard', 'airtable', 'newsapi']
 }
 
 const NAV_ITEMS = [
-  { id: 'crypto', label: 'Crypto Prices', role: ['founder', 'finance'] },
-  { id: 'fx', label: 'FX Rates', role: ['founder', 'finance'] },
+  { id: 'crypto', label: 'Crypto Prices', role: ['founder'] },
+  { id: 'fx', label: 'FX Rates', role: ['founder'] },
   { id: 'weather', label: 'Weather', role: ['founder', 'analyst'] },
   { id: 'aqi', label: 'Air Quality', role: ['founder', 'analyst'] },
   { id: 'airquality', label: 'PM2.5 Forecast', role: ['founder', 'analyst'] },
-  { id: 'stocks', label: 'Stock Market', role: ['founder', 'finance'] },
-  { id: 'worldbank', label: 'India GDP', role: ['founder', 'finance'] },
-  { id: 'economics', label: 'US CPI', role: ['founder', 'finance'] },
+  { id: 'stocks', label: 'Stock Market', role: ['founder'] },
+  { id: 'worldbank', label: 'India GDP', role: ['founder'] },
+  { id: 'economics', label: 'US CPI', role: ['founder'] },
   { id: 'newsapi', label: 'Business News', role: ['founder', 'analyst'] },
-  { id: 'clockify', label: 'Clockify', role: ['founder', 'hr'] },
+  { id: 'clockify', label: 'Clockify', role: ['founder'] },
   { id: 'notion', label: 'SOP Registry', role: ['founder', 'analyst'] },
   { id: 'sopboard', label: 'Trello Board', role: ['founder', 'analyst'] },
   { id: 'hackernews', label: 'Tech News', role: ['founder', 'analyst'] },
   { id: 'reddit', label: 'Reddit', role: ['founder', 'analyst'] },
-  { id: 'hr', label: 'Team Directory', role: ['founder', 'hr'] },
-  { id: 'remoteok', label: 'Remote Jobs', role: ['founder', 'hr'] },
+  { id: 'hr', label: 'Team Directory', role: ['founder'] },
+  { id: 'remoteok', label: 'Remote Jobs', role: ['founder'] },
   { id: 'who', label: 'WHO Health', role: ['founder', 'analyst'] },
   { id: 'wikipedia', label: 'Wikipedia', role: ['founder', 'analyst'] },
   { id: 'airtable', label: 'Client CRM', role: ['founder', 'analyst'] },
   { id: 'secedgar', label: 'SEC Filings', role: ['founder', 'analyst'] },
-  { id: 'hnhiring', label: "Who's Hiring", role: ['founder', 'hr'] },
-  { id: 'usajobs', label: 'Federal Jobs', role: ['founder', 'hr'] },
+  { id: 'hnhiring', label: "Who's Hiring", role: ['founder'] },
+  { id: 'usajobs', label: 'Federal Jobs', role: ['founder'] },
 ]
 
 function KPICard({ title, value, color }) {
@@ -49,17 +47,53 @@ function SectionTitle({ title, id }) {
 
 function LoginScreen({ onLogin }) {
   const [selected, setSelected] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [errorMsg, setErrorMsg] = useState(null)
+
   const roles = [
     { id: 'founder', label: 'Founder', desc: 'Full access to all 25 data sources', color: '#1a1a2e' },
-    { id: 'finance', label: 'Finance', desc: 'Crypto, FX, Stocks, Economics, GDP', color: '#16a085' },
-    { id: 'hr', label: 'HR', desc: 'Team Directory, Jobs, Clockify', color: '#8b5cf6' },
     { id: 'analyst', label: 'Analyst', desc: 'News, Health, Intelligence, SOP data', color: '#3b82f6' },
   ]
+
+  const handleLogin = async () => {
+    if (!selected) return
+    setLoading(true)
+    setErrorMsg(null)
+
+    const credentials = {
+      founder: { email: 'founder@ops.com', password: 'founder123' },
+      analyst: { email: 'analyst@ops.com', password: 'analyst123' }
+    }
+
+    const user = credentials[selected]
+
+    try {
+      const response = await fetch(`${API}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(user)
+      })
+      const data = await response.json()
+
+      if (response.ok) {
+        localStorage.setItem('token', data.token)
+        localStorage.setItem('role', data.role)
+        onLogin(data.role)
+      } else {
+        setErrorMsg(data.message || 'Login failed')
+      }
+    } catch (err) {
+      setErrorMsg('Server not reachable. Try again in a moment.')
+    }
+
+    setLoading(false)
+  }
+
   return (
     <div style={{ minHeight: '100vh', background: '#f0f2f5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Arial' }}>
       <div style={{ background: 'white', borderRadius: '16px', padding: '40px', maxWidth: '480px', width: '100%', boxShadow: '0 4px 24px rgba(0,0,0,0.1)' }}>
         <h1 style={{ color: '#1a1a2e', margin: '0 0 8px' }}>Ops Dashboard</h1>
-        <p style={{ color: '#888', margin: '0 0 32px', fontSize: '14px' }}>Select your role to see relevant data</p>
+        <p style={{ color: '#888', margin: '0 0 32px', fontSize: '14px' }}>Select your role to log in</p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {roles.map(role => (
             <div key={role.id}
@@ -75,9 +109,14 @@ function LoginScreen({ onLogin }) {
             </div>
           ))}
         </div>
+
+        {errorMsg && (
+          <p style={{ color: '#c53030', fontSize: '13px', marginTop: '16px', marginBottom: 0 }}>{errorMsg}</p>
+        )}
+
         <button
-          onClick={() => selected && onLogin(selected)}
-          disabled={!selected}
+          onClick={handleLogin}
+          disabled={!selected || loading}
           style={{
             marginTop: '24px', width: '100%', padding: '14px',
             background: selected ? '#1a1a2e' : '#e5e7eb',
@@ -85,10 +124,11 @@ function LoginScreen({ onLogin }) {
             border: 'none', borderRadius: '10px', fontSize: '15px',
             fontWeight: 'bold', cursor: selected ? 'pointer' : 'not-allowed'
           }}>
-          Enter Dashboard
+          {loading ? 'Logging in...' : 'Enter Dashboard'}
         </button>
+
         <p style={{ color: '#bbb', fontSize: '11px', textAlign: 'center', marginTop: '16px' }}>
-          Note: This is client-side role filtering. Full server-side RBAC would be implemented with Better Auth in production.
+          Founder: founder@ops.com / founder123 · Analyst: analyst@ops.com / analyst123
         </p>
       </div>
     </div>
@@ -124,16 +164,27 @@ function App() {
   const [lastUpdated, setLastUpdated] = useState(null)
   const [loading, setLoading] = useState(true)
 
+  // Auto-login from localStorage on page refresh
+  useEffect(() => {
+    const savedRole = localStorage.getItem('role')
+    if (savedRole) setRole(savedRole)
+  }, [])
+
   useEffect(() => {
     if (!role) return
+
     const safeFetch = async (url) => {
       try {
-        const res = await fetch(url)
+        const token = localStorage.getItem('token')
+        const res = await fetch(url, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {}
+        })
         return await res.json()
       } catch (err) {
         return { data: null, error: true }
       }
     }
+
     const fetchAll = async () => {
       const [c, f, n, h, a, s, sop, wb, aq2, rd, wt, ec, nt, at, wh, wiki, rok, aq3, sec, hnh, uj, cl, na] = await Promise.all([
         safeFetch(`${API}/api/crypto`),
@@ -160,12 +211,13 @@ function App() {
         safeFetch(`${API}/api/clockify`),
         safeFetch(`${API}/api/news`),
       ])
+
       setCrypto(c?.data?.bitcoin ? c.data : null)
       setFx(f?.data?.rates ? f.data : null)
       setNews(Array.isArray(n?.data) ? n.data : null)
       setHr(h?.data?.results ? h.data : null)
       setAqi(a?.data?.data ? a.data.data : null)
-      setStocks(s?.data?.['Global Quote'] ? s.data : null)
+      setStocks(s?.data?.['Global Quote'] ? s.data['Global Quote'] : null)
       setSopBoard(Array.isArray(sop?.data) ? sop.data : null)
       setWorldbank(Array.isArray(wb?.data) && wb.data[1] ? (wb.data[1].find(item => item.value !== null) || null) : null)
       setAirquality(aq2?.data?.hourly ? aq2.data : null)
@@ -186,6 +238,7 @@ function App() {
       setLastUpdated(new Date().toLocaleTimeString())
       setLoading(false)
     }
+
     fetchAll()
   }, [role])
 
@@ -193,6 +246,13 @@ function App() {
     if (!role) return false
     if (role === 'founder') return true
     return ROLE_WIDGETS[role]?.includes(widgetId)
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem('token')
+    localStorage.removeItem('role')
+    setRole(null)
+    setLoading(true)
   }
 
   const visibleNav = NAV_ITEMS.filter(item => item.role.includes(role))
@@ -229,9 +289,9 @@ function App() {
           ))}
         </div>
         <div style={{ padding: '16px 20px', borderTop: '1px solid #333', marginTop: '8px' }}>
-          <button onClick={() => { setRole(null); setLoading(true) }}
+          <button onClick={handleLogout}
             style={{ background: 'transparent', border: '1px solid #555', color: '#aaa', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', width: '100%' }}>
-            Switch Role
+            Log Out
           </button>
         </div>
       </div>
@@ -242,16 +302,14 @@ function App() {
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
           <h1 style={{ color: '#1a1a2e', margin: 0 }}>
-            {role === 'founder' ? 'Founder Overview' :
-             role === 'finance' ? 'Finance Dashboard' :
-             role === 'hr' ? 'HR Dashboard' : 'Analyst Dashboard'}
+            {role === 'founder' ? 'Founder Overview' : 'Analyst Dashboard'}
           </h1>
           <span style={{ fontSize: '12px', color: '#888' }}>Last Updated: {lastUpdated || 'Loading...'}</span>
         </div>
         <p style={{ color: '#888', marginTop: 0 }}>Live data from 25 sources • Cache enabled • Role: {role}</p>
 
         {/* SOP Action Queue */}
-        {canSee('founder') && actionQueue && actionQueue.length > 0 && (
+        {role === 'founder' && actionQueue && actionQueue.length > 0 && (
           <div style={{ marginTop: '8px' }}>
             <SectionTitle title="⚡ SOP Action Queue — Active Triggers" />
             {actionQueue.filter(a => !a.resolved).map((action, i) => (
